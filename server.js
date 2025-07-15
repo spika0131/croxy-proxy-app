@@ -1,11 +1,18 @@
 const express = require("express");
-const unblocker = require("unblocker");
+const Unblocker = require("unblocker");
 const path = require("path");
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3000; // Renderが指定するポートを使う
 
-app.use(express.static("public"));
+// unblockerの設定
+const unblocker = Unblocker({
+  prefix: "/unblocker/", // プロキシ用パスのプレフィックス
+});
+
+app.use(unblocker);
+
+// トップページはviews/index.ejsを表示
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
@@ -13,13 +20,9 @@ app.get("/", (req, res) => {
   res.render("index");
 });
 
-// prefix オプションは必須です（最後はスラッシュで終わる文字列）
-app.use(
-  unblocker({
-    prefix: "/proxy/",
-  })
-);
+// 静的ファイル（CSSなど）をpublicフォルダから配信
+app.use(express.static(path.join(__dirname, "public")));
 
 app.listen(port, () => {
-  console.log(`Proxy running at http://localhost:${port}`);
+  console.log(`Proxy running on port ${port}`);
 });
